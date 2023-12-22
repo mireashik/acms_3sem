@@ -39,8 +39,9 @@ begin
 				UART_RX_Idle <= 1;
 				UART_RX_Data_Out <= 0;
 				UART_RX_Ready_Out <= 0;
-				state <= `WAIT_START_BIT;
+				state <= `WAIT_START_BIT; // состояние переходит в WAIT_START_BIT.
 			end
+		
 		`WAIT_START_BIT: 
 			if (~rx)
 				begin
