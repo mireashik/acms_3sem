@@ -1,28 +1,25 @@
 1. По приведённому ниже коду на языке Verilog ответьте на вопрос: какое устройство (приёмник или передатчик UART) описывает приведённый код на Verilog HDL и какие параметры имеет данное устройство?
 
 ```verilog
-`define RESET 4'd0
-`define WAIT_START_BIT 4'd1
+// Эти строки задают макросы для удобства использования числовых констант в коде
+`define RESET 4'd0 // RESET равно 0
+`define WAIT_START_BIT 4'd1 // WAIT_START_BIT равно 1
 `define LOAD_BIT 4'd2
 `define WAIT_HALF_RATE 4'd3
 
-module UART #
-(
-	parameter CLOCK_RATE = 100_000_000, 
-	parameter BAUD_RATE = 9600		
-)
-(
-	input clk,	
-	input rx,		
+// модуль UART
+module UART #(parameter CLOCK_RATE = 100_000_000, parameter BAUD_RATE = 9600) (
+	input clk, // тактовый сигнал
+	input rx, // входные последовательные данные
 	output reg UART_RX_Idle,
 	output reg UART_RX_Ready_Out,
 	output reg [7:0] UART_RX_Data_Out
 );
 
-reg [1:0] state;
-reg [3:0] bit_counter;	
-reg [$clog2(CLOCK_RATE / BAUD_RATE):0] baud_counter;
-reg baud_flag; 
+reg [1:0] state; // Здесь объявляются регистры для хранения состояния конечного автомата
+reg [3:0] bit_counter; // счетчика битов
+reg [$clog2(CLOCK_RATE / BAUD_RATE):0] baud_counter; // счетчика для генерации битов передачи 
+reg baud_flag; // флага для управления сэмплированием входных данных
 
 initial 
 begin
@@ -32,7 +29,9 @@ end
 
 always@(posedge clk)
 begin
+	// определить логику для каждого состояния конечного автомата
 	case(state)
+		//  состоянии RESET устанавливаются начальные значения,
 		`RESET: 
 			begin
 				bit_counter <= 0; 	
