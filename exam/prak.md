@@ -1,7 +1,7 @@
 1. По приведённому ниже коду на языке Verilog ответьте на вопрос: какое устройство (приёмник или передатчик UART) описывает приведённый код на Verilog HDL и какие параметры имеет данное устройство?
 
-```v
-   `define RESET 4'd0
+```verilog
+`define RESET 4'd0
 `define WAIT_START_BIT 4'd1
 `define LOAD_BIT 4'd2
 `define WAIT_HALF_RATE 4'd3
