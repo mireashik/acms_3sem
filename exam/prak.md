@@ -119,14 +119,14 @@ endmodule
 
 module UART_Input_Manager #
 (
-	DIGIT_COUNT = 4
+DIGIT_COUNT = 4
 )
 (
-	input clk,
-	input ready_to_load,
-	input [7:0] package_to_load,
-	output reg [DIGIT_COUNT*4-1 : 0] number_out,
-	output reg number_ready
+input clk,
+input ready_to_load,
+input [7:0] package_to_load,
+output reg [DIGIT_COUNT*4-1 : 0] number_out,
+output reg number_ready
 );
 
 reg [2:0] state;
@@ -142,73 +142,73 @@ reg [3:0] temp;
 
 initial 
 begin
-	state <= `S0;  // Начальное состояние: ожидание
+state <= `S0;  // Начальное состояние: ожидание
 end
 
 always @(posedge clk) 
 begin
-	case(state)
-		`S0: 
-			begin 
-				number_ready <= 0;
-				FIFO_enable <= 0;
-				temp <= 0;
-				state <= `S1;  // Переход к следующему состоянию
-			end
-		`S1:
-			if (ready_to_load) 
-				if (package_to_load == `CR)  // Если принят символ возврата каретки
-					if (FIFO_empty)  // Если очередь FIFO пуста
-						state <= `S0;  // Вернуться в состояние ожидания
+case(state)
+	`S0: 
+		begin 
+			number_ready <= 0;
+			FIFO_enable <= 0;
+			temp <= 0;
+			state <= `S1;  // Переход к следующему состоянию
+		end
+	`S1:
+		if (ready_to_load) 
+			if (package_to_load == `CR)  // Если принят символ возврата каретки
+				if (FIFO_empty)  // Если очередь FIFO пуста
+					state <= `S0;  // Вернуться в состояние ожидания
+				else
+					begin
+						FIFO_enable <= 1;  // Включить FIFO
+						FIFO_write <= 0;  // Запретить запись в FIFO
+						state <= `S3;  // Перейти к состоянию загрузки числа
+						number_out <= 0;  // Обнулить выходные данные
+					end
+			else
+				begin
+					temp <= hex_digit;  // Сохранить преобразованную цифру
+					if (FIFO_full)
+						state <= `S0;	// Если FIFO полна, вернуться в состояние ожидания
 					else
 						begin
 							FIFO_enable <= 1;  // Включить FIFO
-							FIFO_write <= 0;  // Запретить запись в FIFO
-							state <= `S3;  // Перейти к состоянию загрузки числа
-							number_out <= 0;  // Обнулить выходные данные
+							FIFO_write <= 1;  // Разрешить запись в FIFO
+							state <= `S2;  // Перейти к состоянию ожидания подтверждения записи в FIFO
 						end
-				else
-					begin
-						temp <= hex_digit;  // Сохранить преобразованную цифру
-						if (FIFO_full)
-							state <= `S0;	// Если FIFO полна, вернуться в состояние ожидания
-						else
-							begin
-								FIFO_enable <= 1;  // Включить FIFO
-								FIFO_write <= 1;  // Разрешить запись в FIFO
-								state <= `S2;  // Перейти к состоянию ожидания подтверждения записи в FIFO
-							end
-					end
-			else
-				FIFO_enable <= 0;  // Если нет готовности к загрузке, выключить FIFO
-		`S2:
-			if (FIFO_ready_to_load)  // Если FIFO готово к загрузке
-				state <= `S1;  // Вернуться к ожиданию новых данных
-			else 
-				FIFO_enable <= 0;  // Выключить FIFO, если не готово к загрузке
-		`S3:
-			if (FIFO_empty)  // Если FIFO пусто
-				begin
-					number_ready <= 1;  // Указать, что число готово
-					state <= `S0;  // Вернуться к ожиданию новых данных
 				end
-			else if (FIFO_data_out_ready)  // Если FIFO готово предоставить данные
-				number_out <= {number_out[DIGIT_COUNT*4-5:0],FIFO_data_out};  // Загрузить данные в число
-	endcase
+		else
+			FIFO_enable <= 0;  // Если нет готовности к загрузке, выключить FIFO
+	`S2:
+		if (FIFO_ready_to_load)  // Если FIFO готово к загрузке
+			state <= `S1;  // Вернуться к ожиданию новых данных
+		else 
+			FIFO_enable <= 0;  // Выключить FIFO, если не готово к загрузке
+	`S3:
+		if (FIFO_empty)  // Если FIFO пусто
+			begin
+				number_ready <= 1;  // Указать, что число готово
+				state <= `S0;  // Вернуться к ожиданию новых данных
+			end
+		else if (FIFO_data_out_ready)  // Если FIFO готово предоставить данные
+			number_out <= {number_out[DIGIT_COUNT*4-5:0],FIFO_data_out};  // Загрузить данные в число
+endcase
 end
 
 FIFO fifo(
-	.clk(clk),
-	.data_in(temp),
-	.write(FIFO_write),
-	.enable(FIFO_enable),
-	.data_out(FIFO_data_out),
-	.FIFO_empty(FIFO_empty),
-	.FIFO_full(FIFO_full),
-	.data_out_ready(FIFO_data_out_ready),
-	.ready_to_load(FIFO_ready_to_load)
+.clk(clk),
+.data_in(temp),
+.write(FIFO_write),
+.enable(FIFO_enable),
+.data_out(FIFO_data_out),
+.FIFO_empty(FIFO_empty),
+.FIFO_full(FIFO_full),
+.data_out_ready(FIFO_data_out_ready),
+.ready_to_load(FIFO_ready_to_load)
 );
-
+```
 ASCII_To_HEX a1(package_to_load, hex_digit);  // Преобразование ASCII в HEX
 
 endmodule
