@@ -117,18 +117,15 @@ endmodule
 `define S3 4'd3
 `define CR 8'h0D
 
-module UART_Input_Manager #
-(
-DIGIT_COUNT = 4
-)
-(
-input clk,
-input ready_to_load,
-input [7:0] package_to_load,
-output reg [DIGIT_COUNT*4-1 : 0] number_out,
-output reg number_ready
+module UART_Input_Manager #(DIGIT_COUNT = 4) (
+	input clk,
+	input ready_to_load,
+	input [7:0] package_to_load,
+	output reg [DIGIT_COUNT*4-1 : 0] number_out,
+	output reg number_ready
 );
 
+// В предоставленном коде FIFO (First-In-First-Out) используется для временного хранения данных. 
 reg [2:0] state;
 wire [3:0] hex_digit;
 reg FIFO_write;
