@@ -205,8 +205,7 @@ FIFO fifo(
 .data_out_ready(FIFO_data_out_ready),
 .ready_to_load(FIFO_ready_to_load)
 );
-```
-ASCII_To_HEX a1(package_to_load, hex_digit);  // Преобразование ASCII в HEX
 
+ASCII_To_HEX a1(package_to_load, hex_digit);  // Преобразование ASCII в HEX
 endmodule
 ```
